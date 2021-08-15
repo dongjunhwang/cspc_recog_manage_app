@@ -9,6 +9,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'mainPage.dart';
 
+//const _POST_URL = "http://cocopam.hopto.org:8081/face/add"
+const _POST_URL = "http://10.0.2.2:8000/face/add";
+
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
   final String title;
@@ -265,7 +268,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     List<int> imageBytes = imageFile.readAsBytesSync();
     String base64Image = base64Encode(imageBytes);
     //teprint(base64Image);
-    Uri url = Uri.parse('http://cocopam.hopto.org:8081/face/add');
+    Uri url = Uri.parse(_POST_URL);
     try {
       http.Response response = await http
           .post(

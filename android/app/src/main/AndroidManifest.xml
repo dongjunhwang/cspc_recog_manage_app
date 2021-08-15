@@ -1,7 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.cspc_recog_manage">
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- Add This Feature -->
    <application
         android:label="cspc_recog_manage"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
