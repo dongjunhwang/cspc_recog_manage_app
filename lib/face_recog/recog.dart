@@ -4,12 +4,12 @@ import 'camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'painters/face_detector_painter.dart';
 
-class FaceDetectorView extends StatefulWidget {
+class FaceRecogView extends StatefulWidget {
   @override
-  _FaceDetectorViewState createState() => _FaceDetectorViewState();
+  _FaceRecogViewState createState() => _FaceRecogViewState();
 }
 
-class _FaceDetectorViewState extends State<FaceDetectorView> {
+class _FaceRecogViewState extends State<FaceRecogView> {
   FaceDetector faceDetector =
   GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
     mode: FaceDetectorMode.fast, // default
@@ -35,8 +35,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
       onImage: (inputImage) {
         processImage(inputImage);
       },
-      isRecog: false,
       faceCount: getFaceCount,
+      isRecog: true,
       initialDirection: CameraLensDirection.back,
       turnOffDetect: turnOffDetection,
       turnOnDetect: turnOnDetection,

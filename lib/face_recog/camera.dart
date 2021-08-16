@@ -10,7 +10,8 @@ import 'dart:convert';
 import 'mainPage.dart';
 
 //const _POST_URL = "http://cocopam.hopto.org:8081/face/add"
-const _POST_URL = "http://10.0.2.2:8000/face/add";
+const _DETECT_URL = "http://10.0.2.2:8000/face/detect";
+const _ADD_URL = "http://10.0.2.2:8000/face/add";
 
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class TakePictureScreen extends StatefulWidget {
   final Function() turnOffDetect;
   final Function() turnOnDetect;
 
+  final bool isRecog;
   final int faceCount;
   TakePictureScreen(
       {Key? key,
@@ -29,6 +31,7 @@ class TakePictureScreen extends StatefulWidget {
         required this.onImage,
         required this.turnOffDetect,
         required this.turnOnDetect,
+        required this.isRecog,
         required this.faceCount,
         this.initialDirection = CameraLensDirection.back})
       : super(key: key);
@@ -127,6 +130,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 builder: (context) => DisplayPictureScreen(
                   // Pass the automatically generated path to
                   // the DisplayPictureScreen widget.
+                  isRecog: widget.isRecog,
                   imagePath: image.path,
                 ),
               ),
@@ -158,6 +162,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           builder: (context) => DisplayPictureScreen(
             // Pass the automatically generated path to
             // the DisplayPictureScreen widget.
+            isRecog: widget.isRecog,
             imagePath: image.path,
           ),
         ),
@@ -213,7 +218,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
-  DisplayPictureScreen({Key? key, required this.imagePath}) : super(key: key);
+  final bool isRecog;
+  DisplayPictureScreen({Key? key, required this.imagePath, required this.isRecog}) : super(key: key);
 
   _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
 }
@@ -268,7 +274,16 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     List<int> imageBytes = imageFile.readAsBytesSync();
     String base64Image = base64Encode(imageBytes);
     //teprint(base64Image);
-    Uri url = Uri.parse(_POST_URL);
+    Uri url;
+
+    //For Divide recog and add
+    if (widget.isRecog) {
+      url = Uri.parse(_DETECT_URL);
+    }
+    else{
+      url = Uri.parse(_ADD_URL);
+    }
+
     try {
       http.Response response = await http
           .post(

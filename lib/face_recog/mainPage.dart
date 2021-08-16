@@ -1,4 +1,5 @@
 import 'package:cspc_recog_manage/face_recog/face.dart';
+import 'package:cspc_recog_manage/face_recog/recog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -25,7 +26,16 @@ class MainPage extends StatelessWidget {
                       MaterialPageRoute(
                           builder: (context) => FaceDetectorView()));
                 },
-                child: Text('Face Detect')),
+                child: Text('Add Face')),
+            ElevatedButton(
+                onPressed: () async {
+                  camera = await availableCameras();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FaceRecogView()));
+                },
+                child: Text('Face Recognition')),
           ],
         ),
       ),
