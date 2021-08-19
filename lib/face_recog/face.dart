@@ -35,7 +35,6 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
       onImage: (inputImage) {
         processImage(inputImage);
       },
-      isRecog: false,
       faceCount: getFaceCount,
       initialDirection: CameraLensDirection.back,
       turnOffDetect: turnOffDetection,

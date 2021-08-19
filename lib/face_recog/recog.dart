@@ -1,8 +1,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'painters/face_detector_painter.dart';
+
+import 'package:cspc_recog_manage/face_recog/camera_recog.dart';
 
 class FaceRecogView extends StatefulWidget {
   @override
@@ -29,14 +30,13 @@ class _FaceRecogViewState extends State<FaceRecogView> {
 
   @override
   Widget build(BuildContext context) {
-    return TakePictureScreen(
+    return TakeDetectScreen(
       title: 'Face Detector',
       customPaint: customPaint,
       onImage: (inputImage) {
         processImage(inputImage);
       },
       faceCount: getFaceCount,
-      isRecog: true,
       initialDirection: CameraLensDirection.back,
       turnOffDetect: turnOffDetection,
       turnOnDetect: turnOnDetection,
