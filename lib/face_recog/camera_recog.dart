@@ -45,6 +45,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
   late Future<void> _initializeControllerFuture;
   CustomPaint? customPaint;
   Timer? _detectTimer;
+  late Timer _everySecond;
 
   @override
   void initState() {
@@ -61,6 +62,19 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
 
     // Next, initialize the controller. This returns a Future.
     _initializeControllerFuture = _controller.initialize();
+    _everySecond = Timer.periodic(Duration(seconds: 2), (Timer t) {
+      setState(() {
+        if (widget.faceCount >= 1) {
+          // 카메라뷰로 돌아오면 안찍히는 버그 있음....
+          if (_detectTimer == null) {
+            _detectTimer = Timer(
+              const Duration(seconds: 4),
+                  () => _autoTakePicture(context),
+            );
+          }
+        }
+      });
+    });
   }
 
   @override
@@ -82,16 +96,6 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             _controller.startImageStream(_processCameraImage);
-
-            if (widget.faceCount >= 1) {
-              // 카메라뷰로 돌아오면 안찍히는 버그 있음....
-              if (_detectTimer == null) {
-                _detectTimer = Timer(
-                  const Duration(seconds: 2),
-                      () => _autoTakePicture(context),
-                );
-              }
-            }
             // If the Future is complete, display the preview.
 
             return Container(
@@ -136,7 +140,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
                 Text("Loading..."),
               ],
             ),
-            duration: Duration(seconds:100),
+            duration: Duration(seconds:10),
           )
       );
       await _postRequest(image);
@@ -247,6 +251,17 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
             ),
           );
         }
+      }
+      else if (recogJson["response"] == 2){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Too Early to Exit",
+                style: TextStyle(
+                  color: Colors.white,
+                )),
+            backgroundColor: Colors.lightBlueAccent,
+          ),
+        );
       }
       else {
         ScaffoldMessenger.of(context).showSnackBar(
