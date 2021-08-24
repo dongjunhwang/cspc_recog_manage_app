@@ -136,12 +136,24 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
                 Text("Loading..."),
               ],
             ),
-            duration: Duration(seconds:20),
+            duration: Duration(seconds:100),
           )
       );
       await _postRequest(image);
       _detectTimer = null;
       widget.turnOnDetect();
+      /*
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) {
+        return TakeDetectScreen(
+          title: 'Face Detector',
+          customPaint: customPaint,
+          onImage: widget.onImage,
+          faceCount: widget.faceCount,
+          initialDirection: CameraLensDirection.back,
+          turnOffDetect: widget.turnOffDetect,
+          turnOnDetect: widget.turnOnDetect,);
+      }));
+      */
     }
   }
 
@@ -216,8 +228,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
         const Duration(seconds: 60),
         onTimeout: () => http.Response('error', 500),
       );
-
-      print(response.statusCode);
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
       recogJson = await jsonDecode(response.body);
       if (recogJson["response"] == 1){
         if (recogJson["isOnline"] == 1){
