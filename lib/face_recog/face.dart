@@ -11,11 +11,11 @@ class FaceDetectorView extends StatefulWidget {
 
 class _FaceDetectorViewState extends State<FaceDetectorView> {
   FaceDetector faceDetector =
-  GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
+      GoogleMlKit.vision.faceDetector(FaceDetectorOptions(
     mode: FaceDetectorMode.fast, // default
   ));
   bool isBusy = false;
-  CustomPaint? customPaint;
+  CustomPaint customPaint;
   bool _isPreview = false;
   int _faceCount = 0;
 
@@ -36,7 +36,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         processImage(inputImage);
       },
       faceCount: getFaceCount,
-      initialDirection: CameraLensDirection.back,
+      initialDirection: CameraLensDirection.front,
       turnOffDetect: turnOffDetection,
       turnOnDetect: turnOnDetection,
     );
@@ -61,8 +61,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         inputImage.inputImageData?.imageRotation != null) {
       final painter = FaceDetectorPainter(
         faces,
-        inputImage.inputImageData!.size,
-        inputImage.inputImageData!.imageRotation,
+        inputImage.inputImageData.size,
+        inputImage.inputImageData.imageRotation,
       );
       customPaint = CustomPaint(painter: painter);
     } else {

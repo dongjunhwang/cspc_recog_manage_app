@@ -15,7 +15,7 @@ const _POST_URL = "http://10.0.2.2:8000/face/add";
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
   final String title;
-  final CustomPaint? customPaint;
+  final CustomPaint customPaint;
   final Function(InputImage inputImage) onImage;
   final CameraLensDirection initialDirection;
   final Function() turnOffDetect;
@@ -23,14 +23,14 @@ class TakePictureScreen extends StatefulWidget {
 
   final int faceCount;
   TakePictureScreen(
-      {Key? key,
-        required this.title,
-        required this.customPaint,
-        required this.onImage,
-        required this.turnOffDetect,
-        required this.turnOnDetect,
-        required this.faceCount,
-        this.initialDirection = CameraLensDirection.back})
+      {Key key,
+      this.title,
+      this.customPaint,
+      this.onImage,
+      this.turnOffDetect,
+      this.turnOnDetect,
+      this.faceCount,
+      this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
   @override
@@ -38,10 +38,10 @@ class TakePictureScreen extends StatefulWidget {
 }
 
 class TakePictureScreenState extends State<TakePictureScreen> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
-  CustomPaint? customPaint;
-  Timer? _detectTimer;
+  CameraController _controller;
+  Future<void> _initializeControllerFuture;
+  CustomPaint customPaint;
+  Timer _detectTimer;
 
   @override
   void initState() {
@@ -85,7 +85,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               if (_detectTimer == null) {
                 _detectTimer = Timer(
                   const Duration(seconds: 2),
-                      () => _autoTakePicture(context),
+                  () => _autoTakePicture(context),
                 );
               }
             }
@@ -97,7 +97,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 fit: StackFit.expand,
                 children: <Widget>[
                   CameraPreview(_controller),
-                  if (widget.customPaint != null) widget.customPaint!,
+                  if (widget.customPaint != null) widget.customPaint,
                 ],
               ),
             );
@@ -175,7 +175,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     final bytes = allBytes.done().buffer.asUint8List();
 
     final Size imageSize =
-    Size(image.width.toDouble(), image.height.toDouble());
+        Size(image.width.toDouble(), image.height.toDouble());
 
     final maincamera = camera.first;
     final imageRotation =
@@ -187,7 +187,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             InputImageFormat.NV21;
 
     final planeData = image.planes.map(
-          (Plane plane) {
+      (Plane plane) {
         return InputImagePlaneMetadata(
           bytesPerRow: plane.bytesPerRow,
           height: plane.height,
@@ -204,7 +204,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
 
     final inputImage =
-    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
     widget.onImage(inputImage);
   }
@@ -213,7 +213,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
-  DisplayPictureScreen({Key? key, required this.imagePath}) : super(key: key);
+  DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
 
   _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
 }
@@ -272,23 +272,23 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     try {
       http.Response response = await http
           .post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        }, // this header is essential to send json data
-        body: jsonEncode(
-          [
-            {
-              "image": "$base64Image",
-              "username": "$name",
-            }
-          ],
-        ),
-      )
+            url,
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            }, // this header is essential to send json data
+            body: jsonEncode(
+              [
+                {
+                  "image": "$base64Image",
+                  "username": "$name",
+                }
+              ],
+            ),
+          )
           .timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => http.Response('error', 500),
-      );
+            const Duration(seconds: 5),
+            onTimeout: () => http.Response('error', 500),
+          );
 
       print(response.statusCode);
     } on TimeoutException catch (e) {
