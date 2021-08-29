@@ -1,14 +1,19 @@
+import 'dart:convert';
+
+import 'package:cspc_recog_manage/auth/models/loginUser.dart';
 import 'package:cspc_recog_manage/face_recog/face.dart';
 import 'package:cspc_recog_manage/face_recog/recog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
 
 late List<CameraDescription> camera;
 
 class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final myUser = Provider.of<LoginUserProvier>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text('Manager Version'),
@@ -18,6 +23,7 @@ class MainPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text("Hello, ${myUser.myUser!.myProfileList[0].nickName}"),
             ElevatedButton(
                 onPressed: () async {
                   camera = await availableCameras();
@@ -30,10 +36,8 @@ class MainPage extends StatelessWidget {
             ElevatedButton(
                 onPressed: () async {
                   camera = await availableCameras();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => FaceRecogView()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => FaceRecogView()));
                 },
                 child: Text('Face Recognition')),
           ],
