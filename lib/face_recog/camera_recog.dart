@@ -9,11 +9,14 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'mainPage.dart';
 
+Map<String, dynamic> recogJson;
+
 //const _POST_URL = "http://cocopam.hopto.org:8081/face/add"
-const _ADD_URL = "http://10.0.2.2:8000/face/add";
+const _DETECT_URL = "http://10.0.2.2:8000/face/detect";
+//const _ADD_URL = "http://10.0.2.2:8000/face/add";
 
 // A screen that allows users to take a picture using a given camera.
-class TakePictureScreen extends StatefulWidget {
+class TakeDetectScreen extends StatefulWidget {
   final String title;
   final CustomPaint customPaint;
   final Function(InputImage inputImage) onImage;
@@ -22,7 +25,7 @@ class TakePictureScreen extends StatefulWidget {
   final Function() turnOnDetect;
 
   final int faceCount;
-  TakePictureScreen(
+  TakeDetectScreen(
       {Key key,
       this.title,
       this.customPaint,
@@ -34,14 +37,15 @@ class TakePictureScreen extends StatefulWidget {
       : super(key: key);
 
   @override
-  TakePictureScreenState createState() => TakePictureScreenState();
+  TakeDetectScreenState createState() => TakeDetectScreenState();
 }
 
-class TakePictureScreenState extends State<TakePictureScreen> {
+class TakeDetectScreenState extends State<TakeDetectScreen> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
   CustomPaint customPaint;
   Timer _detectTimer;
+  Timer _everySecond;
 
   @override
   void initState() {
@@ -58,6 +62,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
     // Next, initialize the controller. This returns a Future.
     _initializeControllerFuture = _controller.initialize();
+    _everySecond = Timer.periodic(Duration(seconds: 2), (Timer t) {
+      setState(() {
+        if (widget.faceCount >= 1) {
+          // 카메라뷰로 돌아오면 안찍히는 버그 있음....
+          if (_detectTimer == null) {
+            _detectTimer = Timer(
+              const Duration(seconds: 4),
+              () => _autoTakePicture(context),
+            );
+          }
+        }
+      });
+    });
   }
 
   @override
@@ -79,16 +96,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             _controller.startImageStream(_processCameraImage);
-
-            if (widget.faceCount >= 1) {
-              // 카메라뷰로 돌아오면 안찍히는 버그 있음....
-              if (_detectTimer == null) {
-                _detectTimer = Timer(
-                  const Duration(seconds: 2),
-                  () => _autoTakePicture(context),
-                );
-              }
-            }
             // If the Future is complete, display the preview.
 
             return Container(
@@ -107,42 +114,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
-        onPressed: () async {
-          // Take the Picture in a try / catch block. If anything goes wrong,
-          // catch the error.
-          try {
-            await _controller.stopImageStream();
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
-
-            widget.turnOffDetect();
-            // Attempt to take a picture and get the file `image`
-            // where it was saved.
-            final image = await _controller.takePicture();
-            // If the picture was taken, display it on a new screen.
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  // Pass the automatically generated path to
-                  // the DisplayPictureScreen widget.
-                  imagePath: image.path,
-                ),
-              ),
-            );
-          } catch (e) {
-            // If an error occurs, log the error to the console.
-            print(e);
-          }
-          widget.turnOnDetect(); // if back to preview Page turn on Detection
-        },
-        child: const Icon(Icons.camera_alt),
-      ),
     );
   }
 
   Future _autoTakePicture(context) async {
+    Size screenSize = MediaQuery.of(context).size;
+    double width = screenSize.width;
     if (widget.faceCount >= 1) {
       await _controller.stopImageStream();
       // Ensure that the camera is initialized.
@@ -152,18 +129,33 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       // Attempt to take a picture and get the file `image`
       // where it was saved.
       final image = await _controller.takePicture();
-      // If the picture was taken, display it on a new screen.
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DisplayPictureScreen(
-            // Pass the automatically generated path to
-            // the DisplayPictureScreen widget.
-            imagePath: image.path,
-          ),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            Padding(
+              padding: EdgeInsets.only(left: width * 0.036),
+            ),
+            Text("Loading..."),
+          ],
         ),
-      );
+        duration: Duration(seconds: 10),
+      ));
+      await _postRequest(image);
       _detectTimer = null;
       widget.turnOnDetect();
+      /*
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) {
+        return TakeDetectScreen(
+          title: 'Face Detector',
+          customPaint: customPaint,
+          onImage: widget.onImage,
+          faceCount: widget.faceCount,
+          initialDirection: CameraLensDirection.back,
+          turnOffDetect: widget.turnOffDetect,
+          turnOnDetect: widget.turnOnDetect,);
+      }));
+      */
     }
   }
 
@@ -208,69 +200,16 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
     widget.onImage(inputImage);
   }
-}
 
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatefulWidget {
-  final String imagePath;
-  DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
-
-  _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
-}
-
-class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
-  bool isDetect = false;
-  String name = 'unknown';
-  final textController = TextEditingController();
-
-  void dispose() {
-    textController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          Image.file(
-            File(widget.imagePath),
-            fit: BoxFit.fill,
-          ),
-          TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'name',
-              fillColor: Colors.white,
-              filled: true,
-            ),
-            controller: textController,
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          return _postRequest();
-        },
-        label: Text('check'),
-      ),
-    );
-  }
-
-  _postRequest() async {
-    name = textController.text;
-
-    File imageFile = File(widget.imagePath);
+  _postRequest(XFile image) async {
+    File imageFile = File(image.path);
     List<int> imageBytes = imageFile.readAsBytesSync();
     String base64Image = base64Encode(imageBytes);
     //teprint(base64Image);
     Uri url;
 
-    url = Uri.parse(_ADD_URL);
+    //For Divide recog and add
+    url = Uri.parse(_DETECT_URL);
 
     try {
       http.Response response = await http
@@ -283,7 +222,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
               [
                 {
                   "image": "$base64Image",
-                  "username": "$name",
                 }
               ],
             ),
@@ -292,13 +230,49 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             const Duration(seconds: 60),
             onTimeout: () => http.Response('error', 500),
           );
-
-      print(response.statusCode);
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      recogJson = await jsonDecode(response.body);
+      if (recogJson["response"] == 1) {
+        if (recogJson["isOnline"] == 1) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Hello, " + recogJson["username"]),
+              backgroundColor: Colors.lightGreen,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Bye, " + recogJson["username"]),
+              backgroundColor: Colors.lightGreen,
+            ),
+          );
+        }
+      } else if (recogJson["response"] == 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Too Early to Exit",
+                style: TextStyle(
+                  color: Colors.white,
+                )),
+            backgroundColor: Colors.lightBlueAccent,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Please Add User First",
+                style: TextStyle(
+                  color: Colors.white,
+                )),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } on TimeoutException catch (e) {
       print('$e');
     } on Error catch (e) {
       print('Error: $e');
     }
-    Navigator.of(context).pop();
   }
 }
