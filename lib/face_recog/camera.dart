@@ -24,13 +24,13 @@ class TakePictureScreen extends StatefulWidget {
   final int faceCount;
   TakePictureScreen(
       {Key? key,
-        required this.title,
-        required this.customPaint,
-        required this.onImage,
-        required this.turnOffDetect,
-        required this.turnOnDetect,
-        required this.faceCount,
-        this.initialDirection = CameraLensDirection.back})
+      required this.title,
+      required this.customPaint,
+      required this.onImage,
+      required this.turnOffDetect,
+      required this.turnOnDetect,
+      required this.faceCount,
+      this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
   @override
@@ -64,6 +64,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   void dispose() {
     // Dispose of the controller when the widget is disposed.
     _controller.dispose();
+    _detectTimer = null;
+    // 종료시 timer 남아서 계속 돌아가는 버그 수정
     super.dispose();
   }
 
@@ -85,7 +87,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               if (_detectTimer == null) {
                 _detectTimer = Timer(
                   const Duration(seconds: 2),
-                      () => _autoTakePicture(context),
+                  () => _autoTakePicture(context),
                 );
               }
             }
@@ -175,7 +177,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     final bytes = allBytes.done().buffer.asUint8List();
 
     final Size imageSize =
-    Size(image.width.toDouble(), image.height.toDouble());
+        Size(image.width.toDouble(), image.height.toDouble());
 
     final maincamera = camera.first;
     final imageRotation =
@@ -187,7 +189,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             InputImageFormat.NV21;
 
     final planeData = image.planes.map(
-          (Plane plane) {
+      (Plane plane) {
         return InputImagePlaneMetadata(
           bytesPerRow: plane.bytesPerRow,
           height: plane.height,
@@ -204,7 +206,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
 
     final inputImage =
-    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
     widget.onImage(inputImage);
   }
@@ -275,23 +277,23 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     try {
       http.Response response = await http
           .post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        }, // this header is essential to send json data
-        body: jsonEncode(
-          [
-            {
-              "image": "$base64Image",
-              "username": "$name",
-            }
-          ],
-        ),
-      )
+            url,
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            }, // this header is essential to send json data
+            body: jsonEncode(
+              [
+                {
+                  "image": "$base64Image",
+                  "username": "$name",
+                }
+              ],
+            ),
+          )
           .timeout(
-        const Duration(seconds: 60),
-        onTimeout: () => http.Response('error', 500),
-      );
+            const Duration(seconds: 60),
+            onTimeout: () => http.Response('error', 500),
+          );
 
       print(response.statusCode);
     } on TimeoutException catch (e) {

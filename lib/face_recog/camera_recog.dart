@@ -27,13 +27,13 @@ class TakeDetectScreen extends StatefulWidget {
   final int faceCount;
   TakeDetectScreen(
       {Key? key,
-        required this.title,
-        required this.customPaint,
-        required this.onImage,
-        required this.turnOffDetect,
-        required this.turnOnDetect,
-        required this.faceCount,
-        this.initialDirection = CameraLensDirection.back})
+      required this.title,
+      required this.customPaint,
+      required this.onImage,
+      required this.turnOffDetect,
+      required this.turnOnDetect,
+      required this.faceCount,
+      this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
   @override
@@ -69,7 +69,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
           if (_detectTimer == null) {
             _detectTimer = Timer(
               const Duration(seconds: 4),
-                  () => _autoTakePicture(context),
+              () => _autoTakePicture(context),
             );
           }
         }
@@ -129,20 +129,18 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
       // Attempt to take a picture and get the file `image`
       // where it was saved.
       final image = await _controller.takePicture();
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:Row(
-              children: [
-                CircularProgressIndicator(),
-                Padding(
-                  padding: EdgeInsets.only(left:width * 0.036),
-                ),
-                Text("Loading..."),
-              ],
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            Padding(
+              padding: EdgeInsets.only(left: width * 0.036),
             ),
-            duration: Duration(seconds:10),
-          )
-      );
+            Text("Loading..."),
+          ],
+        ),
+        duration: Duration(seconds: 10),
+      ));
       await _postRequest(image);
       _detectTimer = null;
       widget.turnOnDetect();
@@ -169,7 +167,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
     final bytes = allBytes.done().buffer.asUint8List();
 
     final Size imageSize =
-    Size(image.width.toDouble(), image.height.toDouble());
+        Size(image.width.toDouble(), image.height.toDouble());
 
     final maincamera = camera.first;
     final imageRotation =
@@ -181,7 +179,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
             InputImageFormat.NV21;
 
     final planeData = image.planes.map(
-          (Plane plane) {
+      (Plane plane) {
         return InputImagePlaneMetadata(
           bytesPerRow: plane.bytesPerRow,
           height: plane.height,
@@ -198,7 +196,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
     );
 
     final inputImage =
-    InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
     widget.onImage(inputImage);
   }
@@ -216,43 +214,41 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
     try {
       http.Response response = await http
           .post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        }, // this header is essential to send json data
-        body: jsonEncode(
-          [
-            {
-              "image": "$base64Image",
-            }
-          ],
-        ),
-      )
+            url,
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            }, // this header is essential to send json data
+            body: jsonEncode(
+              [
+                {
+                  "image": "$base64Image",
+                }
+              ],
+            ),
+          )
           .timeout(
-        const Duration(seconds: 60),
-        onTimeout: () => http.Response('error', 500),
-      );
+            const Duration(seconds: 60),
+            onTimeout: () => http.Response('error', 500),
+          );
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       recogJson = await jsonDecode(response.body);
-      if (recogJson["response"] == 1){
-        if (recogJson["isOnline"] == 1){
+      if (recogJson["response"] == 1) {
+        if (recogJson["isOnline"] == 1) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Hello, "+recogJson["username"]),
+              content: Text("Hello, " + recogJson["username"]),
+              backgroundColor: Colors.lightGreen,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Bye, " + recogJson["username"]),
               backgroundColor: Colors.lightGreen,
             ),
           );
         }
-        else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Bye, "+recogJson["username"]),
-              backgroundColor: Colors.lightGreen,
-            ),
-          );
-        }
-      }
-      else if (recogJson["response"] == 2){
+      } else if (recogJson["response"] == 2) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Too Early to Exit",
@@ -262,8 +258,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
             backgroundColor: Colors.lightBlueAccent,
           ),
         );
-      }
-      else {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Please Add User First",
