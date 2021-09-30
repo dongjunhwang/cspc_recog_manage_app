@@ -71,6 +71,7 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           _isLoading = false;
         });
+        print(data);
         myLogin = LoginUser.fromJson(data);
 
         userGet(myLogin!.token);

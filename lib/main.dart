@@ -1,6 +1,5 @@
 import 'package:cspc_recog_manage/auth/login.dart';
 import 'package:cspc_recog_manage/auth/models/loginUser.dart';
-import 'package:cspc_recog_manage/face_recog/mainPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

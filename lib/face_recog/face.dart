@@ -36,7 +36,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         processImage(inputImage);
       },
       faceCount: getFaceCount,
-      initialDirection: CameraLensDirection.back,
+      initialDirection: CameraLensDirection.front,
       turnOffDetect: turnOffDetection,
       turnOnDetect: turnOnDetection,
     );

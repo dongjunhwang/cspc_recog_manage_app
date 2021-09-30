@@ -8,12 +8,11 @@ import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'mainPage.dart';
+import 'package:cspc_recog_manage/style.dart';
+import 'package:cspc_recog_manage/urls.dart';
 
 late Map<String, dynamic> recogJson;
 
-//const _POST_URL = "http://cocopam.hopto.org:8081/face/add"
-const _DETECT_URL = "http://10.0.2.2:8000/face/detect";
-//const _ADD_URL = "http://10.0.2.2:8000/face/add";
 
 // A screen that allows users to take a picture using a given camera.
 class TakeDetectScreen extends StatefulWidget {
@@ -33,7 +32,7 @@ class TakeDetectScreen extends StatefulWidget {
       required this.turnOffDetect,
       required this.turnOnDetect,
       required this.faceCount,
-      this.initialDirection = CameraLensDirection.back})
+      this.initialDirection = CameraLensDirection.front})
       : super(key: key);
 
   @override
@@ -58,6 +57,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
       camera.first,
       // Define the resolution to use.
       ResolutionPreset.ultraHigh,
+      imageFormatGroup: ImageFormatGroup.yuv420,
     );
 
     // Next, initialize the controller. This returns a Future.
@@ -87,7 +87,18 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
+      appBar: AppBar(title: GradientText(
+            'Check In or Out',
+            gradient: LinearGradient(colors: [
+              Color(0xffFA897B),
+              Color(0xffCCABD8),
+            ]),
+          ),
+          centerTitle: true,
+          flexibleSpace: new Container(
+            color: Color(0xffFFDD94),
+          )
+      ),
       // You must wait until the controller is initialized before displaying the
       // camera preview. Use a FutureBuilder to display a loading spinner until the
       // controller has finished initializing.
@@ -209,7 +220,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
     Uri url;
 
     //For Divide recog and add
-    url = Uri.parse(_DETECT_URL);
+    url = Uri.parse(UrlPrefix.urls+"face/detect/");
 
     try {
       http.Response response = await http
@@ -221,7 +232,7 @@ class TakeDetectScreenState extends State<TakeDetectScreen> {
             body: jsonEncode(
               [
                 {
-                  "image": "$base64Image",
+                  //"image": "$base64Image",
                 }
               ],
             ),

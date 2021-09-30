@@ -8,9 +8,10 @@ import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'mainPage.dart';
-
+import 'package:cspc_recog_manage/style.dart';
+import 'package:cspc_recog_manage/urls.dart';
 //const _POST_URL = "http://cocopam.hopto.org:8081/face/add"
-const _ADD_URL = "http://10.0.2.2:8000/face/add";
+
 
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
@@ -30,7 +31,7 @@ class TakePictureScreen extends StatefulWidget {
       required this.turnOffDetect,
       required this.turnOnDetect,
       required this.faceCount,
-      this.initialDirection = CameraLensDirection.back})
+      this.initialDirection = CameraLensDirection.front})
       : super(key: key);
 
   @override
@@ -54,6 +55,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       camera.first,
       // Define the resolution to use.
       ResolutionPreset.ultraHigh,
+      imageFormatGroup: ImageFormatGroup.yuv420,
     );
 
     // Next, initialize the controller. This returns a Future.
@@ -72,7 +74,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
+      appBar: AppBar(
+          title: GradientText(
+            'Add Face',
+            gradient: LinearGradient(colors: [
+              Color(0xffFA897B),
+              Color(0xffCCABD8),
+            ]),
+          ),
+          centerTitle: true,
+          flexibleSpace: new Container(
+            color: Color(0xffFFDD94),
+          )
+      ),
       // You must wait until the controller is initialized before displaying the
       // camera preview. Use a FutureBuilder to display a loading spinner until the
       // controller has finished initializing.
@@ -110,7 +124,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
+        // Provide an onPressed callback
+        backgroundColor: Color(0xff86E3CE),
         onPressed: () async {
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
@@ -233,7 +248,19 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
+      appBar: AppBar(
+          title: GradientText(
+            'Input Your Name',
+            gradient: LinearGradient(colors: [
+              Color(0xffFA897B),
+              Color(0xffCCABD8),
+            ]),
+          ),
+          centerTitle: true,
+          flexibleSpace: new Container(
+            color: Color(0xffFFDD94),
+          )
+      ),
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
       body: Stack(
@@ -255,6 +282,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Color(0xff86E3CE),
         onPressed: () {
           return _postRequest();
         },
@@ -272,7 +300,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     //teprint(base64Image);
     Uri url;
 
-    url = Uri.parse(_ADD_URL);
+    url = Uri.parse(UrlPrefix.urls+"face/add/");
 
     try {
       http.Response response = await http
